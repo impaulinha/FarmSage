@@ -6,7 +6,8 @@ export const theme = {
         green: '#00AD2C',
         cyanGreen: '#00BB89',
         grapeGreen: '#B3F6B6',
-        lightGray: '#F0F0F0'
+        lightGray: '#F0F0F0',
+        red: '#770606'
     },
     font:{
         medium: 'Montserrat_500Medium',

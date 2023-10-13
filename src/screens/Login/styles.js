@@ -41,8 +41,7 @@ export const styles = StyleSheet.create({
     viewInput: {
         marginTop: 30,
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 70
+        alignItems: 'center'
     },
     icon: {
         left: -42
@@ -53,5 +52,12 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 15,
         marginTop: 30
+    },
+    errormsg: {
+        color: theme.color.red,
+        fontFamily: theme.font.regular,
+        fontSize: 13,
+        alignSelf: 'flex-start',
+        marginLeft: 8
     }
 });

@@ -1,18 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, Modal } from 'react-native';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../../components/Button';
 import { theme } from '../../global/theme';
 import { styles } from './styles';
+import * as yup from 'yup';
+import { DialogBox } from '../../components/DialogBox';
 
-export function Login({ layout }){
+const validation = yup.object({
+    email: yup.string().email('Email inválido').required('Informe seu email'),
+    password: yup.string().min(8, 'A senha deve conter pelo menos 8 caracteres').required('Digite sua senha')
+})
+
+export function Login({ navigation }){
     const [showPassword, setShowPassword] = useState(true)
+    const [modalVisible, setModalVisible] = useState(false)
+    const { control, handleSubmit, formState: { errors } } = useForm({
+        resolver: yupResolver(validation)
+    })
 
-    useEffect(() => {
-        if(layout){
-            layout()
-        }
-    }, [])
+    function handleLogin(data){
+        console.log(data)
+    }
+
+    function closeModal(){
+        setModalVisible(!modalVisible)
+    }
 
     return (
         <View style={styles.container}>
@@ -28,47 +43,85 @@ export function Login({ layout }){
                     Bem vindo(a)
                 </Text>
 
-                <TextInput 
-                    style={styles.input}
-                    placeholder='Email...'
-                    keyboardType='email-address'
-                    maxLength={320}
+                <Controller 
+                    name='email'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                        <TextInput 
+                            style={styles.input}
+                            placeholder='Email...'
+                            keyboardType='email-address'
+                            autoCapitalize='none'
+                            maxLength={320}
+                            onChangeText={onChange}
+                            value={value}
+                        />
+                    )}
                 />
+                { errors.email && <Text style={styles.errormsg}>{ errors.email?.message }</Text> }
 
-                <View style={styles.viewInput}>
-                    <TextInput 
-                        style={{...styles.input, width: '100%'}}
-                        placeholder='Senha...'
-                        autoCorrect={false}
-                        autoCapitalize='none'
-                        secureTextEntry={showPassword}
-                    />
-                    <TouchableOpacity 
-                        style={styles.icon}
-                        activeOpacity={0.8}
-                        onPress={() => setShowPassword(!showPassword)}
-                    >
-                        {
-                            showPassword ?
-                                <Ionicons 
-                                    name='eye-off-outline' size={26} color={theme.color.green} 
-                                />
-                            :
-                                <Ionicons 
-                                    name='eye-outline' size={26} color={theme.color.green} 
-                                />
-                        }
-                    </TouchableOpacity>
+                <Controller 
+                    name='password'
+                    control={control}
+                    render={({ field: { onChange, value } }) => (
+                        <View style={styles.viewInput}>
+                            <TextInput 
+                                style={{...styles.input, width: '100%'}}
+                                placeholder='Senha...'
+                                autoCorrect={false}
+                                autoCapitalize='none'
+                                secureTextEntry={showPassword}
+                                onChangeText={onChange}
+                                value={value}
+                            />
+                            <TouchableOpacity 
+                                style={styles.icon}
+                                activeOpacity={0.8}
+                                onPress={() => setShowPassword(!showPassword)}
+                            >
+                                {
+                                    showPassword ?
+                                        <Ionicons 
+                                            name='eye-off-outline' size={26} color={theme.color.green} 
+                                        />
+                                    :
+                                        <Ionicons 
+                                            name='eye-outline' size={26} color={theme.color.green} 
+                                        />
+                                }
+                            </TouchableOpacity> 
+                        </View>
+                    )}
+                />
+                <View style={{ marginBottom: 70 }}>
+                    { errors.password && <Text style={styles.errormsg}>{ errors.password?.message }</Text> }
                 </View>
 
                 <Button 
                     text='Login'
+                    action={handleSubmit(handleLogin)}
                 />
 
                 <Text style={styles.text}>
-                    Não possui uma conta? <Text style={{ color: theme.color.green }}>Cadastre-se</Text>
+                    Não possui uma conta? 
+                    <Text style={{ color: theme.color.green }} onPress={() => navigation.navigate('Cadastre')}>
+                        Cadastre-se
+                    </Text>
                 </Text>
             </View>
+
+            <Modal
+                transparent
+                animationType='slide'
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(!modalVisible)}
+            >
+                <DialogBox 
+                    title='Ocorreu um erro'
+                    message='Lamentamos, mas não foi possível realizar o login. Tente novamente.'
+                    action={closeModal}
+                />
+            </Modal>
         </View>
     );
 }
