@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, Modal } from 'react-native';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { DialogBox } from '../../components/DialogBox';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../../components/Button';
 import { theme } from '../../global/theme';
+import Firebase from '../../config';
 import { styles } from './styles';
 import * as yup from 'yup';
-import { DialogBox } from '../../components/DialogBox';
 
 const validation = yup.object({
     email: yup.string().email('Email inválido').required('Informe seu email'),
     password: yup.string().min(8, 'A senha deve conter pelo menos 8 caracteres').required('Digite sua senha')
 })
 
-export function Login({ navigation }){
+export function Login({ navigation, setUserLoggedIn }){
     const [showPassword, setShowPassword] = useState(true)
     const [modalVisible, setModalVisible] = useState(false)
     const { control, handleSubmit, formState: { errors } } = useForm({
@@ -23,6 +25,22 @@ export function Login({ navigation }){
 
     function handleLogin(data){
         console.log(data)
+        login(data)
+    }
+
+    async function login(data){
+        try {
+            const auth = getAuth(Firebase);
+            await signInWithEmailAndPassword(auth, data.email, data.password);
+            
+            setUserLoggedIn(true);
+            //navigation.navigate('Home')
+            console.log('Login efetuado')
+        } 
+        catch (error) {
+            console.log('Erro no login: ', error)
+            setModalVisible(!modalVisible)
+        }
     }
 
     function closeModal(){

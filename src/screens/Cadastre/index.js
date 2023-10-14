@@ -6,8 +6,11 @@ import { useForm, Controller } from 'react-hook-form';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../../components/Button';
 import { theme } from '../../global/theme';
+import Firebase from '../../config';
 import { styles } from './styles';
 import * as yup from 'yup';
+
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 const validation = yup.object({
     name: yup.string().required('Informe seu nome'),
@@ -19,18 +22,50 @@ const validation = yup.object({
 export function Cadastre({ navigation }){
     const [showPassword, setShowPassword] = useState(true)
     const [showConfirmPassword, setShowConfirmPassword] = useState(true)
-    const [modalVisible, setModalVisible] = useState(true)
+    const [modalCadastre, setModalCadastre] = useState(false)
+    const [modalPassword, setModalPassword] = useState(false)
+
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validation)
     })
 
     function handleCadastre(data){
         console.log(data)
+
+        if(data.password !== data.confirmPassword){
+            setModalPassword(!modalPassword)
+            console.log('Senhas diferentes')
+            return
+        }
+        
+        newUser(data)
+    }
+
+    async function newUser(data){
+        try {
+            const auth = getAuth(Firebase);
+            const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      
+            const user = userCredential.user;
+      
+            await updateProfile(user, {
+              name: data.name,
+            });
+
+            setModalCadastre(!modalCadastre)
+            console.log('Cadastro realizado')
+        } 
+        catch (error) {
+            console.log('Erro no cadastro: ', error)
+        }
+    }
+
+    function goBack(){
+        navigation.goBack()
     }
 
     function closeModal(){
-        setModalVisible(!modalVisible)
-        navigation.goBack()
+        setModalPassword(!modalPassword)
     }
 
     return (
@@ -157,13 +192,26 @@ export function Cadastre({ navigation }){
             <Modal
                 transparent
                 animationType='slide'
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(!modalVisible)}
+                visible={modalCadastre}
+                onRequestClose={() => setModalCadastre(!modalCadastre)}
             >
                 <DialogBox
                     title='Cadastro realizado'
                     message='Seu cadastro foi realizado com sucesso. Agora você já pode ter acesso ao nosso app,
                     aproveite!'
+                    action={goBack}
+                />
+            </Modal>
+
+            <Modal
+                transparent
+                animationType='slide'
+                visible={modalPassword}
+                onRequestClose={() => setModalPassword(!modalPassword)}
+            >
+                <DialogBox
+                    title='Verifique as senhas'
+                    message='As senhas digitadas não conferem'
                     action={closeModal}
                 />
             </Modal>
