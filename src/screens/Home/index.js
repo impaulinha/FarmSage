@@ -6,7 +6,7 @@ import Picture from '../../components/Picture';
 import { theme } from '../../global/theme';
 import { styles } from './styles';
 
-export function Home(){
+export function Home({ navigation }){
     const plantio = [
         {
             id: 1,
@@ -34,7 +34,7 @@ export function Home(){
                     </Text>
                 </View>
 
-                <ButtonAdd />
+                <ButtonAdd action={() => navigation.navigate('AddPlanting')}/>
             </View>
 
             <View style={styles.category}>

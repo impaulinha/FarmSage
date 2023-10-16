@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { addDoc, collection } from 'firebase/firestore';
 import { DialogBox } from '../../components/DialogBox';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, Controller } from 'react-hook-form';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../../components/Button';
+import { Load } from '../../components/Load';
 import { theme } from '../../global/theme';
 import Firebase from '../../config';
 import { styles } from './styles';
+import { db } from '../../config';
 import * as yup from 'yup';
-
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 const validation = yup.object({
     name: yup.string().required('Informe seu nome'),
@@ -24,6 +26,7 @@ export function Cadastre({ navigation }){
     const [showConfirmPassword, setShowConfirmPassword] = useState(true)
     const [modalCadastre, setModalCadastre] = useState(false)
     const [modalPassword, setModalPassword] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validation)
@@ -42,20 +45,30 @@ export function Cadastre({ navigation }){
     }
 
     async function newUser(data){
+        setIsLoading(true)
+
         try {
             const auth = getAuth(Firebase);
             const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      
             const user = userCredential.user;
+            const userDocRef = collection(db, 'user')
       
             await updateProfile(user, {
-              name: data.name,
+              displayName: data.name,
             });
 
+            await addDoc(userDocRef, {
+                uid: user.uid,
+                email: data.email,
+                name: data.name,
+            });
+
+            setIsLoading(false)
             setModalCadastre(!modalCadastre)
             console.log('Cadastro realizado')
         } 
         catch (error) {
+            setIsLoading(false)
             console.log('Erro no cadastro: ', error)
         }
     }
@@ -183,10 +196,14 @@ export function Cadastre({ navigation }){
                 <View style={{ marginBottom: 50 }}>
                     { errors.password && <Text style={styles.errormsg}>{ errors.password?.message }</Text> }
                 </View>
-                <Button 
-                    text='Cadastrar'   
-                    action={handleSubmit(handleCadastre)}             
-                />
+                
+                {
+                    isLoading ? (
+                        <Load color={theme.color.cyanGreen}/>
+                    ) : (
+                        <Button text='Cadastrar' action={handleSubmit(handleCadastre)} />
+                    )
+                }
             </View>
 
             <Modal

@@ -5,7 +5,7 @@ import { theme } from '../../global/theme';
 import { styles } from './styles';
 
 const ButtonAdd = ({ action }) => (
-    <TouchableOpacity style={styles.container} activeOpacity={0.8}>
+    <TouchableOpacity style={styles.container} activeOpacity={0.8} onPress={action}>
         <Ionicons 
             name='add-outline' size={40} color={theme.color.green} 
         />

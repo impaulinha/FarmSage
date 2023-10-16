@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
 import { DialogBox } from '../../components/DialogBox';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Button from '../../components/Button';
+import { Load } from '../../components/Load';
 import { theme } from '../../global/theme';
 import Firebase from '../../config';
 import { styles } from './styles';
@@ -16,9 +19,12 @@ const validation = yup.object({
     password: yup.string().min(8, 'A senha deve conter pelo menos 8 caracteres').required('Digite sua senha')
 })
 
-export function Login({ navigation, setUserLoggedIn }){
+export function Login({ setUserLoggedIn }){
     const [showPassword, setShowPassword] = useState(true)
     const [modalVisible, setModalVisible] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const navigation = useNavigation();
+
     const { control, handleSubmit, formState: { errors } } = useForm({
         resolver: yupResolver(validation)
     })
@@ -29,22 +35,32 @@ export function Login({ navigation, setUserLoggedIn }){
     }
 
     async function login(data){
+        setIsLoading(true)
+
         try {
             const auth = getAuth(Firebase);
             await signInWithEmailAndPassword(auth, data.email, data.password);
             
             setUserLoggedIn(true);
-            //navigation.navigate('Home')
+            await AsyncStorage.setItem('userLoggedIn', 'true');
+
+            setIsLoading(false)
             console.log('Login efetuado')
         } 
         catch (error) {
-            console.log('Erro no login: ', error)
+            setIsLoading(false)
             setModalVisible(!modalVisible)
+
+            console.log('Erro no login: ', error)
         }
     }
 
     function closeModal(){
         setModalVisible(!modalVisible)
+    }
+
+    function goCadastre(){
+        navigation.navigate('Cadastre')
     }
 
     return (
@@ -115,14 +131,17 @@ export function Login({ navigation, setUserLoggedIn }){
                     { errors.password && <Text style={styles.errormsg}>{ errors.password?.message }</Text> }
                 </View>
 
-                <Button 
-                    text='Login'
-                    action={handleSubmit(handleLogin)}
-                />
+                {
+                    isLoading ? (
+                        <Load color={theme.color.cyanGreen} />
+                    ) : (        
+                        <Button text='Login' action={handleSubmit(handleLogin)} />
+                    )
+                }
 
                 <Text style={styles.text}>
                     Não possui uma conta? 
-                    <Text style={{ color: theme.color.green }} onPress={() => navigation.navigate('Cadastre')}>
+                    <Text style={{ color: theme.color.green }} onPress={goCadastre}>
                         Cadastre-se
                     </Text>
                 </Text>

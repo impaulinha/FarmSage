@@ -1,11 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { theme } from '../global/theme';
 
+import { SelectedCategory } from '../screens/SelectedCategory';
+import { SelectedSeed } from '../screens/SelectedSeed';
 import { Calculations } from '../screens/Calculations';
+import { AddPlanting } from '../screens/AddPlanting';
+import { SmartSearch } from '../screens/SmartSearch';
 import { Cadastre } from '../screens/Cadastre';
 import { Account } from '../screens/Account';
 import { Login } from '../screens/Login';
@@ -20,11 +25,12 @@ function LoginStacks({ setUserLoggedIn }){
         <Stack.Navigator initialRouteName='Login' screenOptions={{ headerShadowVisible: false }}>
             <Stack.Screen 
                 name='Login'
-                component={() => <Login setUserLoggedIn={setUserLoggedIn} />}
                 options={{
                     headerShown: false
                 }}
-            />
+            >
+                {() => <Login setUserLoggedIn={setUserLoggedIn} />}
+            </Stack.Screen>
 
             <Stack.Screen 
                 name='Cadastre'
@@ -35,13 +41,6 @@ function LoginStacks({ setUserLoggedIn }){
                         backgroundColor: theme.color.cyanGreen
                     },
                     headerTintColor: theme.color.white
-                }}
-            />
-            <Stack.Screen 
-                name='Home'
-                component={Home}
-                options={{
-                    headerShown: false
                 }}
             />
         </Stack.Navigator>
@@ -58,11 +57,55 @@ function HomeStacks(){
                     headerShown: false
                 }}
             />
+            <Stack.Screen 
+                name='SmartSearch'
+                component={SmartSearch}
+                options={{
+                    title:'',
+                    headerStyle:{
+                        backgroundColor: theme.color.cyanGreen
+                    },
+                    headerTintColor: theme.color.white
+                }}
+            />
+            <Stack.Screen 
+                name='SelectedCategory'
+                component={SelectedCategory}
+                options={{
+                    title:'',
+                    headerStyle:{
+                        backgroundColor: theme.color.cyanGreen
+                    },
+                    headerTintColor: theme.color.white
+                }}
+            />
+            <Stack.Screen 
+                name='SelectedSeed'
+                component={SelectedSeed}
+                options={{
+                    title:'',
+                    headerStyle:{
+                        backgroundColor: theme.color.cyanGreen
+                    },
+                    headerTintColor: theme.color.white
+                }}
+            />
+            <Stack.Screen 
+                name='AddPlanting'
+                component={AddPlanting}
+                options={{
+                    title:'',
+                    headerStyle:{
+                        backgroundColor: theme.color.cyanGreen
+                    },
+                    headerTintColor: theme.color.white
+                }}
+            />
         </Stack.Navigator>
     )
 }
 
-function TabStacks(){
+function TabStacks({ setUserLoggedIn }){
     return(
         <Tab.Navigator
             screenOptions={{
@@ -89,7 +132,7 @@ function TabStacks(){
                             name='leaf-outline' size={size} color={color} 
                         />
                     ),
-                    title: 'Plantio'
+                    title: 'Plantio',
                 }}
             />
             <Tab.Screen 
@@ -120,7 +163,6 @@ function TabStacks(){
             />
             <Tab.Screen 
                 name='Account'
-                component={Account}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ size, color }) => (
@@ -130,7 +172,9 @@ function TabStacks(){
                     ),
                     title: 'Conta'
                 }}
-            />
+            >
+                {() => <Account setUserLoggedIn={setUserLoggedIn} />}
+            </Tab.Screen>
         </Tab.Navigator>
     )
 }
@@ -138,11 +182,23 @@ function TabStacks(){
 export function Routes(){
     const [userLoggedIn, setUserLoggedIn] = useState(false);
 
+    useEffect(() => {
+        const checkLoginStatus = async () => {
+          const status = await AsyncStorage.getItem('userLoggedIn');
+          
+          if (status === 'true') {
+            setUserLoggedIn(true);
+          }
+        };
+    
+        checkLoginStatus();
+    }, []);
+
     return (
         <NavigationContainer>
             {
                 userLoggedIn ? (
-                    <TabStacks />
+                    <TabStacks setUserLoggedIn={setUserLoggedIn} />
                 ) : (
                     <LoginStacks setUserLoggedIn={setUserLoggedIn} />
                 )

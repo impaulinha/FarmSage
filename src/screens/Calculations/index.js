@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import { Card } from '../../components/Card';
 import { styles } from './styles';
 
-export function Calculations(){
+export function Calculations({ navigation }){
     return (
         <View style={styles.container}>
             <View style={styles.header} />
@@ -16,6 +16,7 @@ export function Calculations(){
                 <Card 
                     name='Busca inteligente'
                     icon='search'
+                    action={() => navigation.navigate('SmartSearch')}
                 />
                 <Card 
                     name='Transformar medidas'
